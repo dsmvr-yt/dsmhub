@@ -32,7 +32,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 nav{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:8px;background:rgba(15,5,5,.9);border:1px solid #3a1616;border-radius:999px;max-width:calc(100% - 24px);overflow-x:auto}
 nav button{background:none;border:0;padding:10px 14px;border-radius:999px;color:var(--mut);font-size:14px;white-space:nowrap}
 nav button.on{background:var(--ac);color:#fff;font-weight:700}
-#panic{position:fixed;right:14px;bottom:calc(22px + env(safe-area-inset-bottom,0px));background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-weight:700;font-size:13px}
+#panic{position:fixed;right:14px;bottom:calc(88px + env(safe-area-inset-bottom,0px));background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-weight:700;font-size:13px}
 .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;color:var(--mut)}
 .chip.on{border-color:var(--ac);color:var(--tx)}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
@@ -86,7 +86,7 @@ function render(){document.querySelectorAll('#nav button').forEach(b=>b.classLis
 function home(){
  app.innerHTML=`<div class="wrap hero"><h1>dsmhub</h1><p>games, movies, chat and more, all in one hub</p>
  <div class="search">${I('search')}<input id="q" placeholder="search games or type a URL…" aria-label="Search"></div>
- <div class="grid">${['games','movies','chat','ai','browse'].map(k=>`<button class="tile" data-go="${k}">${I(k)}<span>${{games:'games',movies:'movies',chat:'community chat',ai:'ai assistant',browse:'browser'}[k]}</span></button>`).join('')}</div>${hasSB&&!sess?'<p class="note" style="margin-top:26px">Sign in to sync favorites, recent games and your movie embed across devices.</p><button class="btn g" data-go="account">Sign in</button>':''}</div>`;
+ <div class="grid">${['games','movies','chat','ai','browse'].map(k=>`<button class="tile" data-go="${k}">${I(k)}<span>${{games:'games',movies:'movies',chat:'community chat',ai:'ai assistant',browse:'browser'}[k]}</span></button>`).join('')}</div>${hasSB&&!sess?'<p class="note" style="margin-top:26px">Sign in to sync favorites and recent games across devices.</p><button class="btn g" data-go="account">Sign in</button>':''}</div>`;
  $('#q').onkeydown=e=>{if(e.key!=='Enter')return;const v=e.target.value.trim();if(!v)return;
   if(/^[\w-]+(\.[\w-]+)+(\/|$)/.test(v)||/^https?:\/\//.test(v)){url=/^https?:/.test(v)?v:'https://'+v;go('browse')}
   else{gq=v;go('games')}}}
@@ -114,15 +114,11 @@ async function gamesV(){
  app.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{const id=b.dataset.f;put('fav',store.fav.includes(id)?store.fav.filter(x=>x!==id):[...store.fav,id]);gamesV()})}
 
 /* movies */
-function embedHtml(m){if(!m||!m.value)return '';
- return m.mode==='url'?`<iframe class="f" title="Movies" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation" allow="fullscreen" referrerpolicy="no-referrer" src="${esc(m.value)}"></iframe>`
- :`<iframe class="f" title="Movies" sandbox="allow-scripts allow-popups allow-forms allow-presentation" allow="fullscreen" srcdoc="${esc(m.value)}"></iframe>`}
-function moviesV(){
- app.innerHTML=`<div class="wrap"><h2>Movies</h2>${movie&&movie.value?embedHtml(movie):'<p class="empty">No movie source configured yet.</p>'}
- ${admin?`<h2 style="margin-top:22px">Set embed (admin)</h2><textarea class="t" id="me" placeholder="https://… or paste HTML" aria-label="Embed URL or HTML">${esc(movie?movie.value:'')}</textarea><div class="row"><button class="btn" id="msv">Save</button></div><p class="note" id="mn">Saved to your account when signed in, otherwise to this browser only. Only use sources you are licensed to show. HTML runs sandboxed without access to this page.</p>`:''}</div>`;
- if(admin)$('#msv').onclick=async()=>{const v=$('#me').value.trim();
-  const m={mode:/^https:\/\/\S+$/.test(v)?'url':'html',value:v};
-  movie=m;put('movie',m);moviesV()}}
+let MV=null;
+async function moviesV(){
+ const u=A+'movies/play.svg';
+ if(MV===null){app.innerHTML='<div class="wrap"><p class="empty">Loading…</p></div>';try{MV=(await fetch(u,{method:'HEAD'})).ok}catch(e){MV=false}if(view!=='movies')return}
+ app.innerHTML=`<div class="wrap"><h2>Movies</h2>${MV?`<a class="btn g" style="text-decoration:none;display:inline-block" href="${esc(u)}" target="_blank" rel="noopener">Open in tab</a><iframe class="f" title="Movies" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" referrerpolicy="no-referrer" src="${esc(u)}"></iframe>`:'<p class="empty">No movies page yet. Add movies/index.html to your repo and push.</p>'}</div>`}
 
 /* backend (Supabase) */
 let sb=null,sess=null;
@@ -192,21 +188,20 @@ function setAcct(){const b=$('#acct');if(b)b.textContent=sess?sess.user.email.sp
 function accountV(){
  app.innerHTML='<div class="wrap"><h2>Account</h2><div id="ab2"></div></div>';const el=$('#ab2');
  if(!hasSB){el.innerHTML='<p class="empty">Accounts need Supabase. Add your keys to config.js (see README).</p>';return}
- if(!sess){authBox(el,'Sign in to sync favorites, recently played games and your movie embed, and to use chat and the assistant.');return}
- el.innerHTML=`<div class="box" style="min-height:0"><p>Signed in as <b>${esc(sess.user.email)}</b></p><p class="note">Synced to this account: favorites, recently played games and your movie embed. Chat and the assistant use it too. Data is loaded when you sign in or reload.</p><button class="btn g" id="so2">Sign out</button></div>`;
+ if(!sess){authBox(el,'Sign in to sync favorites and recently played games, and to use chat and the assistant.');return}
+ el.innerHTML=`<div class="box" style="min-height:0"><p>Signed in as <b>${esc(sess.user.email)}</b></p><p class="note">Synced to this account: favorites and recently played games. Chat and the assistant use it too. Data is loaded when you sign in or reload.</p><button class="btn g" id="so2">Sign out</button></div>`;
  $('#so2').onclick=()=>sb.auth.signOut()}
 const lj=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
-const store={fav:lj('dsm_fav',[]),recent:lj('dsm_recent',[]),movie:lj('dsm_movie',null)};
-const KEYS=['fav','recent','movie'];
+const store={fav:lj('dsm_fav',[]),recent:lj('dsm_recent',[])};
+const KEYS=['fav','recent'];
 const keep=(k,v)=>{try{localStorage.setItem('dsm_'+k,JSON.stringify(v))}catch(e){}};
 function put(k,v){store[k]=v;keep(k,v);if(sb&&sess)sb.from('user_data').upsert({user_id:sess.user.id,key:k,value:v,updated_at:new Date().toISOString()}).then(({error})=>{if(error)console.warn('sync failed',error.message)})}
 async function pull(){if(!sb||!sess)return;const{data,error}=await sb.from('user_data').select('key,value');if(error)return;
  const got={};(data||[]).forEach(r=>{got[r.key]=r.value});
- for(const k of KEYS){if(k in got){store[k]=got[k];keep(k,got[k])}else if(store[k]&&(!Array.isArray(store[k])||store[k].length))put(k,store[k])}
- movie=store.movie}
+ for(const k of KEYS){if(k in got){store[k]=got[k];keep(k,got[k])}else if(store[k]&&(!Array.isArray(store[k])||store[k].length))put(k,store[k])}}
 
 /* init */
-movie=store.movie;me='local';admin=true;
+me='local';admin=true;
 render();
 if(hasSB){
  const onS=async()=>{setAcct();await pull();if(['chat','ai','account','games','movies','home'].includes(view))go(view)};
