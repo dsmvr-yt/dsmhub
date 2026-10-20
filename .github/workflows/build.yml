@@ -1,0 +1,23 @@
+name: Build
+on:
+  push:
+    branches: [main]
+    paths: [index.html, config.js, "tools/**", "games/**", dsmhub-repo.zip]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack upload
+        run: |
+          if [ -f dsmhub-repo.zip ]; then unzip -oq dsmhub-repo.zip -x ".github/*"; rm dsmhub-repo.zip; fi
+      - run: python3 tools/build_games.py
+      - run: python3 tools/build_svg.py
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git diff --cached --quiet || (git commit -m "Build" && git push)
