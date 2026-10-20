@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DSMHub</title>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#0a0a0a;--card:#171212;--line:#2b1c1c;--tx:#f5f5f5;--mut:#8a7f7f;--ac:#ff3b30;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;padding-bottom:96px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+header,main,nav,#panic{position:relative;z-index:1}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--line);background:rgba(20,8,8,.6)}
+.logo{font-weight:800;font-size:22px;letter-spacing:-.5px;cursor:pointer;background:none;border:0;color:var(--tx)}
+.ico{display:flex;gap:6px}
+button{font:inherit;color:inherit;cursor:pointer}
+.ib{background:none;border:0;padding:8px;color:var(--mut);border-radius:10px}
+.ib:hover,.ib:focus-visible{color:var(--tx);outline:2px solid var(--ac)}
+.ic{display:inline-block;width:22px;height:22px;background:currentColor;-webkit-mask:var(--u) center/contain no-repeat;mask:var(--u) center/contain no-repeat}.tile .ic{width:28px;height:28px}.logo img{display:block;height:26px;width:auto}
+.wrap{max-width:820px;margin:0 auto;padding:22px 18px}
+.hero{text-align:center;padding-top:40px}
+.hero h1{font-size:clamp(52px,16vw,92px);margin:0;letter-spacing:-3px;font-weight:800}
+.hero p{color:var(--mut);font-style:italic;margin:6px 0 28px}
+.search{display:flex;align-items:center;gap:10px;max-width:500px;margin:0 auto 34px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+.search input{flex:1;background:none;border:0;color:var(--tx);padding:16px 0;font:inherit;font-size:14px;outline:0}
+.search:focus-within{border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;max-width:760px;margin:0 auto}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:18px;height:116px;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;transition:transform .15s,border-color .15s}
+.tile:hover,.tile:focus-visible{transform:translateY(-2px);border-color:var(--ac);outline:0}
+nav{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:8px;background:rgba(15,5,5,.9);border:1px solid #3a1616;border-radius:999px;max-width:calc(100% - 24px);overflow-x:auto}
+nav button{background:none;border:0;padding:10px 14px;border-radius:999px;color:var(--mut);font-size:14px;white-space:nowrap}
+nav button.on{background:var(--ac);color:#fff;font-weight:700}
+#panic{position:fixed;right:14px;bottom:calc(22px + env(safe-area-inset-bottom,0px));background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-weight:700;font-size:13px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;color:var(--mut)}
+.chip.on{border-color:var(--ac);color:var(--tx)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;min-height:260px;max-height:52vh;overflow:auto}
+.row{display:flex;gap:8px;margin-top:10px}
+input.t,textarea.t,.row input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:12px;padding:12px;font:inherit}
+textarea.t{width:100%;min-height:90px}
+.btn{background:var(--ac);border:0;color:#fff;border-radius:12px;padding:12px 18px;font-weight:700}
+.btn.g{background:var(--card);border:1px solid var(--line);color:var(--tx)}
+.empty,.note{color:var(--mut);font-size:14px}
+.msg{padding:6px 0}.msg b{margin-right:8px}.msg small{color:var(--mut)}.msg .x{background:none;border:0;color:var(--mut);float:right}
+.me{color:var(--ac)}
+.bub{padding:10px 12px;border-radius:14px;margin:8px 0;max-width:88%;white-space:pre-wrap;background:#201717}
+.bub.u{background:#3a1414;margin-left:auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:left}
+.card:hover{border-color:var(--ac)}
+iframe.f{width:100%;height:68vh;border:1px solid var(--line);border-radius:14px;background:#000;margin-top:10px}
+h2{margin:6px 0}h3{margin:22px 0 2px;font-size:15px;color:var(--mut);font-weight:600}.card.gc{position:relative;padding:0;overflow:hidden}.gb{display:block;width:100%;background:none;border:0;padding:0;text-align:left}.gb img,.gb .ph{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#201717}.gb b{display:block;padding:10px 12px;font-size:14px}.gc .x{position:absolute;top:4px;right:4px;float:none;background:rgba(0,0,0,.6);color:#fff;padding:4px 8px}
+@media(prefers-reduced-motion:reduce){.tile{transition:none}}
+</style></head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<header><button class="logo" data-go="home">dsmhub</button><div class="ico" id="top"></div></header>
+<main id="app"></main>
+<button id="panic">panic!</button>
+<nav id="nav" aria-label="Main"></nav>
+<script>
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CFG=window.DSMHUB||{};
+const A=CFG.GITHUB_USER&&CFG.GITHUB_REPO?`https://cdn.jsdelivr.net/gh/${CFG.GITHUB_USER}/${CFG.GITHUB_REPO}@${CFG.GITHUB_REF||'main'}/`:'';
+const I=n=>`<span class="ic" style="--u:url('${A}assets/icons/${n}.svg')" aria-hidden="true"></span>`;
+document.head.insertAdjacentHTML('beforeend',`<link rel="icon" type="image/svg+xml" href="${A}assets/favicon.svg">`);
+$('.logo').innerHTML=`<img src="${A}assets/logo.svg" alt="dsmhub" onerror="this.onerror=null;this.src='assets/logo.svg'">`;
+const NAV=[['home','Home'],['games','Games'],['movies','Movies'],['chat','Chat'],['ai','AI'],['browse','Browser']];
+let db=null,user=null,me='guest',admin=false,view='home',games=[],gq='',playing=null,chan='chat',movie=null,unsub=null,ai=[],last=0,url='';
+const CH=['general','games','movies'];chan='general';
+
+/* shell */
+$('#top').innerHTML=['games','ai','movies','browse'].map(n=>`<button class="ib" data-go="${n}" aria-label="${n}">${I(n)}</button>`).join('');
+$('#top').insertAdjacentHTML('beforeend','<button class="chip" id="acct" data-go="account">Sign in</button>');
+$('#nav').innerHTML=NAV.map(([k,l])=>`<button data-go="${k}">${l}</button>`).join('');
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)go(b.dataset.go)});
+$('#panic').onclick=()=>window.open('https://www.google.com','_blank','noopener');
+
+function go(v){view=v;playing=null;if(unsub){unsub();unsub=null}render();scrollTo(0,0)}
+function render(){document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===view));({home,games:gamesV,movies:moviesV,chat:chatV,ai:aiV,browse:browseV,account:accountV})[view]()}
+
+/* home */
+function home(){
+ app.innerHTML=`<div class="wrap hero"><h1>dsmhub</h1><p>games, movies, chat and more, all in one hub</p>
+ <div class="search">${I('search')}<input id="q" placeholder="search games or type a URL…" aria-label="Search"></div>
+ <div class="grid">${['games','movies','chat','ai','browse'].map(k=>`<button class="tile" data-go="${k}">${I(k)}<span>${{games:'games',movies:'movies',chat:'community chat',ai:'ai assistant',browse:'browser'}[k]}</span></button>`).join('')}</div>${hasSB&&!sess?'<p class="note" style="margin-top:26px">Sign in to sync favorites, recent games and your movie embed across devices.</p><button class="btn g" data-go="account">Sign in</button>':''}</div>`;
+ $('#q').onkeydown=e=>{if(e.key!=='Enter')return;const v=e.target.value.trim();if(!v)return;
+  if(/^[\w-]+(\.[\w-]+)+(\/|$)/.test(v)||/^https?:\/\//.test(v)){url=/^https?:/.test(v)?v:'https://'+v;go('browse')}
+  else{gq=v;go('games')}}}
+
+/* games */
+let GM=null;
+const gurl=(g,f)=>A+'games/'+encodeURIComponent(g.id)+'/'+encodeURIComponent(f);
+async function loadGames(){try{const r=await fetch(A+'games/games.json',{cache:'no-cache'});if(!r.ok)throw 0;GM=await r.json()}catch(e){GM=[]}}
+async function gamesV(){
+ if(!GM){app.innerHTML='<div class="wrap"><p class="empty">Loading games…</p></div>';await loadGames();if(view!=='games')return}
+ const byId=id=>GM.find(g=>g.id===id);
+ if(playing){const g=playing;app.innerHTML=`<div class="wrap"><h2>${esc(g.title)}</h2><button class="btn g" id="back">Back</button> <a class="btn g" style="text-decoration:none;display:inline-block" href="${esc(gurl(g,g.play))}" target="_blank" rel="noopener">Open in tab</a>
+  <iframe class="f" title="${esc(g.title)}" sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-popups" allow="fullscreen" referrerpolicy="no-referrer" src="${esc(gurl(g,g.play))}"></iframe>
+  <p class="note">Games run sandboxed, separate from your DSMHub session.</p></div>`;
+  $('#back').onclick=()=>{playing=null;gamesV()};return}
+ const q=gq.toLowerCase(),list=GM.filter(g=>g.title.toLowerCase().includes(q));
+ const card=g=>{const f=store.fav.includes(g.id);return `<div class="card gc"><button class="gb" data-p="${esc(g.id)}">${g.icon?`<img src="${esc(gurl(g,g.icon))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`:'<div class="ph"></div>'}<b>${esc(g.title)}</b></button><button class="x ib" data-f="${esc(g.id)}" aria-label="${f?'Remove favorite':'Favorite'}: ${esc(g.title)}">${f?'★':'☆'}</button></div>`};
+ const sec=(t,a)=>a.length&&!q?`<h3>${t}</h3><div class="cards">${a.map(card).join('')}</div>`:'';
+ app.innerHTML=`<div class="wrap"><h2>Games</h2><div class="row"><input id="gs" placeholder="Search games" value="${esc(gq)}" aria-label="Search games"></div>
+ ${sec('Recently played',store.recent.map(byId).filter(Boolean))}${sec('Favorites',store.fav.map(byId).filter(Boolean))}
+ <h3>${q?'Results':'All games'}</h3>${list.length?`<div class="cards">${list.map(card).join('')}</div>`:`<p class="empty">${GM.length?'No matches.':'No games found. Add folders under games/ in your repo and push.'}</p>`}
+ ${hasSB&&!sess?'<p class="note" style="margin-top:22px">Sign in (top right) to sync favorites and recently played across devices.</p>':''}</div>`;
+ $('#gs').oninput=e=>{gq=e.target.value;const p=e.target.selectionStart;gamesV().then(()=>{const n=$('#gs');if(n){n.focus();n.setSelectionRange(p,p)}})};
+ app.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const g=byId(b.dataset.p);if(!g)return;put('recent',[g.id,...store.recent.filter(x=>x!==g.id)].slice(0,12));playing=g;gamesV()});
+ app.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{const id=b.dataset.f;put('fav',store.fav.includes(id)?store.fav.filter(x=>x!==id):[...store.fav,id]);gamesV()})}
+
+/* movies */
+function embedHtml(m){if(!m||!m.value)return '';
+ return m.mode==='url'?`<iframe class="f" title="Movies" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation" allow="fullscreen" referrerpolicy="no-referrer" src="${esc(m.value)}"></iframe>`
+ :`<iframe class="f" title="Movies" sandbox="allow-scripts allow-popups allow-forms allow-presentation" allow="fullscreen" srcdoc="${esc(m.value)}"></iframe>`}
+function moviesV(){
+ app.innerHTML=`<div class="wrap"><h2>Movies</h2>${movie&&movie.value?embedHtml(movie):'<p class="empty">No movie source configured yet.</p>'}
+ ${admin?`<h2 style="margin-top:22px">Set embed (admin)</h2><textarea class="t" id="me" placeholder="https://… or paste HTML" aria-label="Embed URL or HTML">${esc(movie?movie.value:'')}</textarea><div class="row"><button class="btn" id="msv">Save</button></div><p class="note" id="mn">Saved to your account when signed in, otherwise to this browser only. Only use sources you are licensed to show. HTML runs sandboxed without access to this page.</p>`:''}</div>`;
+ if(admin)$('#msv').onclick=async()=>{const v=$('#me').value.trim();
+  const m={mode:/^https:\/\/\S+$/.test(v)?'url':'html',value:v};
+  movie=m;put('movie',m);moviesV()}}
+
+/* backend (Supabase) */
+let sb=null,sess=null;
+const hasSB=!!(CFG.SUPABASE_URL&&CFG.SUPABASE_ANON_KEY&&window.supabase);
+if(hasSB)sb=supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY);
+function authBox(el,why){
+ el.innerHTML=`<div class="box"><p class="empty">${why}</p><div class="row"><input id="ae" type="email" placeholder="Email" autocomplete="email" aria-label="Email"><input id="ap" type="password" placeholder="Password (8+ characters)" autocomplete="current-password" aria-label="Password"></div><div class="row"><button class="btn" id="si">Sign in</button><button class="btn g" id="su">Create account</button></div><p class="note" id="am"></p></div>`;
+ const m=t=>{$('#am').textContent=t},c=()=>({email:$('#ae').value.trim(),password:$('#ap').value});
+ $('#si').onclick=async()=>{const{error}=await sb.auth.signInWithPassword(c());if(error)m(error.message)};
+ $('#su').onclick=async()=>{const{data,error}=await sb.auth.signUp(c());if(error)m(error.message);else if(!data.session)m('Check your email to confirm, then sign in.')}}
+
+/* chat */
+function chatV(){
+ app.innerHTML='<div class="wrap"><h2>Community chat</h2><div id="cb"></div></div>';const cb=$('#cb');
+ if(!hasSB){cb.innerHTML='<p class="empty">Chat needs Supabase. Add your keys to config.js (see README).</p>';return}
+ if(!sess){authBox(cb,'Sign in to join the chat.');return}
+ const nm=sess.user.email.split('@')[0];
+ cb.innerHTML=`<div class="tabs">${CH.map(c=>`<button class="chip ${c===chan?'on':''}" data-c="${c}">#${c}</button>`).join('')}<button class="chip" id="so">Sign out</button></div><div class="box" id="msgs" aria-live="polite"><p class="empty">Loading…</p></div><div class="row"><input id="mi" maxlength="500" placeholder="Message #${chan}" aria-label="Message"><button class="btn" id="ms">Send</button></div><p class="note" id="cn"></p>`;
+ cb.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{chan=b.dataset.c;go('chat')});
+ $('#so').onclick=()=>sb.auth.signOut();
+ const load=async()=>{const{data,error}=await sb.from('messages').select('id,user_id,name,text,created_at').eq('channel',chan).order('created_at',{ascending:false}).limit(100);
+  const box=$('#msgs');if(!box)return;if(error){box.innerHTML='<p class="empty">Could not load messages.</p>';return}
+  const bottom=box.scrollTop+box.clientHeight>=box.scrollHeight-40;const rows=data.reverse();
+  box.innerHTML=rows.length?rows.map(r=>`<div class="msg"><b class="${r.user_id===sess.user.id?'me':''}">${esc(r.name||'user')}</b><small>${new Date(r.created_at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}</small>${r.user_id===sess.user.id?`<button class="x" data-x="${esc(r.id)}" aria-label="Delete">✕</button>`:''}<div>${esc(r.text)}</div></div>`).join(''):'<p class="empty">No messages yet. Say hi.</p>';
+  box.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>sb.from('messages').delete().eq('id',b.dataset.x).then(load));
+  if(bottom||!box.dataset.s){box.scrollTop=box.scrollHeight;box.dataset.s=1}};
+ load();const ch=sb.channel('m-'+chan).on('postgres_changes',{event:'*',schema:'public',table:'messages'},load).subscribe();
+ unsub=()=>sb.removeChannel(ch);
+ const send=async()=>{const i=$('#mi'),t=i.value.trim();if(!t)return;
+  if(Date.now()-last<1000){$('#cn').textContent='Slow down a little.';return}
+  last=Date.now();i.value='';$('#cn').textContent='';
+  const{error}=await sb.from('messages').insert({channel:chan,text:t.slice(0,500),name:nm});
+  if(error){$('#cn').textContent='Send failed: '+error.message;i.value=t}};
+ $('#ms').onclick=send;$('#mi').onkeydown=e=>{if(e.key==='Enter')send()}}
+
+/* ai */
+function aiLog(){const l=$('#al');if(!l)return;l.innerHTML=ai.length?ai.map(m=>`<div class="bub ${m.role==='user'?'u':''}">${esc(m.content)}</div>`).join(''):'<p class="empty">Ask anything.</p>';l.scrollTop=l.scrollHeight}
+function aiV(){
+ app.innerHTML='<div class="wrap"><h2>AI assistant</h2><div id="ab"></div></div>';const ab=$('#ab');
+ if(!hasSB){ab.innerHTML='<p class="empty">The assistant needs Supabase sign-in and the Supabase Edge Function. See README.</p>';return}
+ if(!sess){authBox(ab,'Sign in to use the assistant.');return}
+ ab.innerHTML='<div class="box" id="al"></div><div class="row"><input id="ai" maxlength="2000" placeholder="Ask something…" aria-label="Prompt"><button class="btn" id="as">Send</button><button class="btn g" id="ac">Clear</button></div><p class="note" id="an">Text only. Conversations stay in this tab and are not saved.</p>';aiLog();
+ const run=async()=>{const i=$('#ai'),t=i.value.trim();if(!t)return;
+  i.value='';ai.push({role:'user',content:t});const hist=ai.slice(-20);ai.push({role:'assistant',content:'…'});aiLog();$('#an').textContent='';
+  try{const r=await fetch(CFG.SUPABASE_URL+'/functions/v1/ai',{method:'POST',headers:{'Content-Type':'application/json',apikey:CFG.SUPABASE_ANON_KEY,Authorization:'Bearer '+sess.access_token},body:JSON.stringify({messages:hist})});
+   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Request failed ('+r.status+')');ai[ai.length-1].content=j.text||'(empty reply)'}
+  catch(e){ai.pop();$('#an').textContent=e.message}aiLog()};
+ $('#as').onclick=run;$('#ai').onkeydown=e=>{if(e.key==='Enter')run()};$('#ac').onclick=()=>{ai=[];aiLog()}}
+
+/* browser */
+function browseV(){
+ app.innerHTML=`<div class="wrap"><h2>Browser</h2><div class="row"><input id="bu" placeholder="Enter a URL" value="${esc(url)}" aria-label="URL"><button class="btn" id="bg">Go</button><button class="btn g" id="bo">New tab</button></div>
+ <div id="bf">${url?`<iframe class="f" title="Page" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" referrerpolicy="no-referrer" src="${esc(url)}"></iframe>`:'<p class="empty">Enter a site to open it here.</p>'}</div>
+ <p class="note">This is an embedded view, not a full browser or proxy. Many sites refuse to be framed; if it stays blank, use New tab.</p></div>`;
+ const norm=()=>{let v=$('#bu').value.trim();if(!v)return '';if(!/^https?:\/\//.test(v))v=/^[\w-]+(\.[\w-]+)+/.test(v)?'https://'+v:'https://duckduckgo.com/?q='+encodeURIComponent(v);return validUrl(v)?v:''};
+ $('#bg').onclick=()=>{url=norm();browseV()};$('#bu').onkeydown=e=>{if(e.key==='Enter'){url=norm();browseV()}};
+ $('#bo').onclick=()=>{const u=norm();if(u)window.open(u,'_blank','noopener')}}
+
+/* stars */
+(function(){const c=$('#stars'),x=c.getContext('2d');let s=[],W,H;
+ const rs=()=>{W=c.width=innerWidth;H=c.height=innerHeight;s=Array.from({length:Math.round(W*H/9000)},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+.3,p:Math.random()*6}))};
+ const d=t=>{x.clearRect(0,0,W,H);for(const a of s){x.globalAlpha=.45+.45*Math.sin(t/1400+a.p);x.fillStyle='#fff';x.beginPath();x.arc(a.x,a.y,a.r,0,7);x.fill()}if(!matchMedia('(prefers-reduced-motion:reduce)').matches)requestAnimationFrame(d)};
+ addEventListener('resize',rs);rs();requestAnimationFrame(d)})();
+
+/* account + sync */
+function setAcct(){const b=$('#acct');if(b)b.textContent=sess?sess.user.email.split('@')[0].slice(0,10):'Sign in'}
+function accountV(){
+ app.innerHTML='<div class="wrap"><h2>Account</h2><div id="ab2"></div></div>';const el=$('#ab2');
+ if(!hasSB){el.innerHTML='<p class="empty">Accounts need Supabase. Add your keys to config.js (see README).</p>';return}
+ if(!sess){authBox(el,'Sign in to sync favorites, recently played games and your movie embed, and to use chat and the assistant.');return}
+ el.innerHTML=`<div class="box" style="min-height:0"><p>Signed in as <b>${esc(sess.user.email)}</b></p><p class="note">Synced to this account: favorites, recently played games and your movie embed. Chat and the assistant use it too. Data is loaded when you sign in or reload.</p><button class="btn g" id="so2">Sign out</button></div>`;
+ $('#so2').onclick=()=>sb.auth.signOut()}
+const lj=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
+const store={fav:lj('dsm_fav',[]),recent:lj('dsm_recent',[]),movie:lj('dsm_movie',null)};
+const KEYS=['fav','recent','movie'];
+const keep=(k,v)=>{try{localStorage.setItem('dsm_'+k,JSON.stringify(v))}catch(e){}};
+function put(k,v){store[k]=v;keep(k,v);if(sb&&sess)sb.from('user_data').upsert({user_id:sess.user.id,key:k,value:v,updated_at:new Date().toISOString()}).then(({error})=>{if(error)console.warn('sync failed',error.message)})}
+async function pull(){if(!sb||!sess)return;const{data,error}=await sb.from('user_data').select('key,value');if(error)return;
+ const got={};(data||[]).forEach(r=>{got[r.key]=r.value});
+ for(const k of KEYS){if(k in got){store[k]=got[k];keep(k,got[k])}else if(store[k]&&(!Array.isArray(store[k])||store[k].length))put(k,store[k])}
+ movie=store.movie}
+
+/* init */
+movie=store.movie;me='local';admin=true;
+render();
+if(hasSB){
+ const onS=async()=>{setAcct();await pull();if(['chat','ai','account','games','movies','home'].includes(view))go(view)};
+ sb.auth.getSession().then(({data})=>{sess=data.session;onS()});
+ sb.auth.onAuthStateChange((ev,x)=>{if(ev!=='SIGNED_IN'&&ev!=='SIGNED_OUT')return;if(x&&sess&&x.user.id===sess.user.id){sess=x;return}sess=x;onS()})}
+</script></body></html>
